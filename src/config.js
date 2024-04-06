@@ -23,6 +23,7 @@ export const PAYPAL_API='https://api-m.sandbox.paypal.com';
 
 //variables de google OAuth2
 
+export const EMAIL_PORT=process.env.EMAIL_PORT
 export const EMAIL_PASSWORD=process.env.EMAIL_PASSWORD
 export const GOOGLE_CLIENT_ID=process.env.GOOGLE_CLIENT_ID
 export const GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET
