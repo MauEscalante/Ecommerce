@@ -64,7 +64,8 @@ export const createOrder = async (req, res) => {
 
     // Guardar el documento newSale en la base de datos  
     const savedSale=await newSale.save();
-    const saleId=savedSale._id.toString()
+    const saleId=savedSale._id
+    
 
     const order = {
       intent: "CAPTURE",
@@ -152,7 +153,7 @@ export const captureOrder = async (req, res) => {
 
 export const cancelPayment = async (req, res) => {
     try{
-        const saleId = req.params
+        const {saleId} = req.params
         const deletedSale = await Sales.findByIdAndDelete(saleId);
         res.send({success:false,message:"Pago cancelado" });
     }catch(error){
@@ -165,24 +166,60 @@ export const cancelPayment = async (req, res) => {
 ///////////////////Stripe//////////////////
 export const createSession=async (req,res)=>{
   try{
-    const cartProducts=req.body;
-    const session=await stripe.checkout.sessions.create({
-      line_items: cartProducts.map(item => ({
-        price_data: {
-          product_data: {
-            name: item.nombre,
-          },
-          currency: "usd",
-          unit_amount: item.precio * 100, 
-        },
-        quantity: item.cantidad,
-      })),
-    
-      mode:"payment",
-      success_url:`${HOST}/success`,
-      cancel_url: `${HOST}/cancel`
-    })
-    return res.json({url:session.url})
+      const cartProducts=req.body;
+
+    //obtener usuario a travez del token
+    const decodedToken = jwt.verify(req.headers["x-access-token"], SECRET_JWT); 
+    // El ID del usuario estará disponible en la información decodificada del token
+    const userId = decodedToken.userId;
+
+    const newSale = new Sales({
+        buyer_id: userId,
+        amount:0,
+        products:[]
+    });
+
+      let carrito=[]
+      for (const item of cartProducts) {
+        // Obtener información del producto desde la base de datos
+        const productInfo = await Product.findById(item.id);
+        const productPrice=productInfo.price*item.cantidad
+        // Construir el objeto de producto para el line_items
+        const productForLineItem = {
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: productInfo.name,
+                },
+                unit_amount: productPrice * 100,
+            },
+            quantity: item.cantidad,
+        };
+
+      //actualizo el json
+      newSale.products.push({
+        productId: item.id,
+        quantity: item.cantidad
+      });
+      
+      //actualizo el monto de la venta
+      newSale.amount += productPrice;
+
+    // Agregar el producto al carrito
+    carrito.push(productForLineItem);
+  }
+  // Guardar el documento newSale en la base de datos  
+  const savedSale=await newSale.save();
+  const saleId=savedSale._id
+  
+  const session=await stripe.checkout.sessions.create({
+    line_items:carrito,
+  
+    mode:"payment",
+    success_url:`${HOST}/payment/success`,
+    cancel_url: `${HOST}/payment/cancel/${saleId}`
+  })
+  return res.json({url:session.url})
   }catch(error){
     return res.status(500).json({ message: error });
   }
@@ -192,7 +229,9 @@ export const paymentSuccess=(req,res)=>{
   return res.status(200)
 }
 
-export const paymentCancel=(req,res)=>{
+export const paymentCancel=async (req,res)=>{
+  const {saleId} = req.params
+  const deletedSale = await Sales.findByIdAndDelete(saleId);
   return res.status(400).json({message:"El usuario cancelo la solicitud"})
 }
 

@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Role from "../models/Role.js";
-import { SECRET } from "../config.js";
+import { SECRET_JWT } from "../config.js";
 
 export const signupHandler = async (req, res) => {
   try {
@@ -28,7 +28,7 @@ export const signupHandler = async (req, res) => {
     const savedUser = await newUser.save();
     console.log(savedUser)
     // Create a token
-    const token = jwt.sign({ id: savedUser._id }, SECRET, {
+    const token = jwt.sign({ id: savedUser._id }, SECRET_JWT, {
       expiresIn: 86400, // 24 hours
     });
 
@@ -59,7 +59,7 @@ export const signinHandler = async (req, res) => {
         message: "Invalid Password",
       });
 
-    const token = jwt.sign({ id: userFound._id }, SECRET, {
+    const token = jwt.sign({ id: userFound._id }, SECRET_JWT, {
       expiresIn: 86400, // 24 hours
     });
 
