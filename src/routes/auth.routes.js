@@ -2,8 +2,12 @@ import { Router } from "express";
 import {
   signinHandler,
   signupHandler,
+  googleCallback,
+  logSuccess,
+  logFailed
 } from "../controller/auth.controller.js";
-import {checkExistingRole,checkExistingUser,} from "../middlewares/verifySignup.js";
+const passport=require("passport")
+import "../middlewares/google.js";
 
 const router = Router();
 
@@ -15,8 +19,26 @@ router.use((req, res, next) => {
   next();
 });
 
+////////AUTENTIFICACION EN LA PAG/////////////////
 router.post("/signup", signupHandler);
 
 router.post("/signin", signinHandler);
+
+////////AUTENTIFICACION CON GOOGLE////////////////
+router.get("/auth/google", 
+passport.authenticate("auth-google", {
+  scope: [
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "https://www.googleapis.com/auth/userinfo.email",
+  ],
+  session: false,
+}),
+);
+
+router.get("/auth/google/callback",googleCallback)
+
+router.get('/login/succes', logSuccess)
+
+router.get('/login/failed', logFailed)
 
 export default router;

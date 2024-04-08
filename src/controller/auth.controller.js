@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Role from "../models/Role.js";
 import { SECRET_JWT } from "../config.js";
+const passport=require("passport")
 
 export const signupHandler = async (req, res) => {
   try {
@@ -68,3 +69,21 @@ export const signinHandler = async (req, res) => {
     console.log(error);
   }
 };
+
+export const googleCallback=(req,res)=>{
+  passport.authenticate("google", {
+  successRedirect: "/login/logSuccess",
+  failureRedirect: "/login/failed",
+})
+}
+
+export const logSuccess= (req,res)=>{
+  res.send("hola")
+}
+
+export const logFailed=(req,res)=>{
+  res.status(401).json({
+  error: true,
+  message: "Log in failure",
+});
+}
