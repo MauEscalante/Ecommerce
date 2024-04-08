@@ -52,3 +52,38 @@ export const deleteProductById = async (req, res) => {
   // code 200 is ok too
   res.status(204).json();
 };
+
+export const getProductsByName=async(req,res)=>{
+  console.log("INGRESO PRODUCT BY NAME  ")
+  /*
+  try{
+    const {name}=req.params
+    
+    const products = await Product.find();
+    console.log(products)
+    const filteredProducts = products.filter(
+      (product) => product.name.toLowerCase().includes(name.toLowerCase())
+    );
+    return res.json(filteredProducts);
+  }catch(error){
+    return res.status(500).json({ error: "Se produjo un error al obtener los productos" });
+  }
+  */
+}
+
+export const getProductsByRangePrice=async(req,res)=>{
+  try{
+    const { minPrice, maxPrice } = req.params;
+    if (isNaN(minPrice) || isNaN(maxPrice)) {
+      return res.status(400).json({ error: "Los parámetros minPrice y maxPrice deben ser números" });
+    }
+    const products = await Product.find();
+    const filteredProducts = products.filter(
+      (product) => product.price >= minPrice && product.price <= maxPrice
+    );
+    return res.json(filteredProducts);
+
+  }catch(error){
+    return res.status(500).json({ error: "Se produjo un error al obtener los productos" });
+  }
+}
