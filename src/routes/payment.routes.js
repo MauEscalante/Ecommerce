@@ -12,7 +12,7 @@ router.get("/cancel-paypal-order/:saleId", cancelPayment);
 ///////////////////Stripe//////////////////
 router.get("/create-checkout-session",[verifyToken],createSession)
 router.get("/success",paymentSuccess)
-router.get("/cancel",paymentCancel)
+router.get("/cancel/:saleId",paymentCancel)
 
 
 export default router;
